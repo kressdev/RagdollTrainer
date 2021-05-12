@@ -1,6 +1,6 @@
 ![Ragdoll Screenshot](/docs/RagdollScreenshot.png)
 
-# AI Trainer Unity Project
+# Ragdoll Trainer Unity Project
 
 Active ragdoll training with Unity ML-Agents (PyTorch). 
 
@@ -28,36 +28,24 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 * Added LookAtTarget average for left and right foot transforms.
 
-* Speed and LookAtTarget reward added (instead of multiplied) during early training stage.
+* Apply cutoff to LookAtTarget reward (dot product 0.5f or greater is set to 0.5f max)
+
+* Speed and LookAtTarget reward added (instead of multiplied).
 
 ### TensorBoard Results
 
 ![TensorBoard Image](/docs/RagdollTensor.png)
 
 Results shown are for 25 agents training the same behavior (C# MaxStep is 4000). 
-The config file is the same as Walker.yaml example.
+The config file is the same as Walker.yaml example. Speed range is randomized (0.1-4.0).
 
-Standup/balancing/turning to target requires 2e6 steps. Taking first steps forward to target requires another 1e6 steps.
-During these steps the agent is rewarded by adding the foot lookAtTarget to the match speed. 
+Graph marker (1) agent learns to stand up and balance. 
+Graph marker (2) agent learns walking and reaches the first target. 
+Graph marker (3) agent optimizes walking to targets.
 
-Full training for walking/running to target requires roughly 1E7 steps (speed range 0.1-4.0). During these steps 
-the head lookAtTarget is multiplied with match speed (same reward as the Walker example).
-
-The match speed reward is computed from the hips and includes negative direction (penalty). Further testing is needed 
-to compare this reward with the average body velocity from the Walker example.
-
-### Areas for Improvement
-
-The agent will try to walk sideways or backwards if the head is used for lookAtTarget. 
-The most effective solution so far is to reward lookAtTarget for the feet instead of head. 
-Is there an alternative for early training to ensure forward walking?
-
-With the foot lookAtTarget reward the agent develops a narrow stance where one foot is often blocking/in front of the other. 
-The agent eventually learns to widen stance to walk faster but this behavior seems to slow training in the early stage.
-
-The spine tends to oscillate around the vertical axis during walking behavior. This is likely caused by the stabilizer. 
-Several solutions to check: increase joint damping, increase rb drag/angular drag, decrease stabilizer torque, or modify torque curve.
-This also may be related to agent actions. Check after beta and entropy reach minimum (2e7-3e7 steps).
+The match speed reward is computed for the hips and includes negative direction (penalty). 
+The look at target reward is computed for the feet. A cutoff is applied so max reward is +/- 30deg to target.
+Further testing is needed to compare this reward with the average body velocity from the Walker example.
 
 ## Behavior Controller
 

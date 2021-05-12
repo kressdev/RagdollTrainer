@@ -17,18 +17,13 @@ namespace JKress.AITrainer
         /// Added Heuristic function to test joints by user input. 
         /// </summary>
         ///
-        [Header("Move To Target")]
-        [SerializeField]
-        //The walking speed to try and achieve
-        private bool m_lookAtTarget = false;
-
         [Header("Walk Speed")]
-        [Range(0.1f, 10)]
+        [Range(0.1f, 4)]
         [SerializeField]
         //The walking speed to try and achieve
-        private float m_TargetWalkingSpeed = 10;
+        private float m_TargetWalkingSpeed = 4;
         [SerializeField] float m_minWalkingSpeed = 0.1f; //The min walking speed
-        [SerializeField] float m_maxWalkingSpeed = 10f; //The max walking speed
+        [SerializeField] float m_maxWalkingSpeed = 4; //The max walking speed
 
         public float MTargetWalkingSpeed // property
         {
@@ -299,10 +294,12 @@ namespace JKress.AITrainer
 
             // b. Rotation alignment with target direction.
             //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates
-            var lookAtTargetReward = (Vector3.Dot(cubeForward, head.forward) + 1) * .5F;
-            var lookAtTargetRewardL = Vector3.Dot(cubeForward, footL.up);
+            //var lookAtTargetReward = (Vector3.Dot(cubeForward, head.forward) + 1) * .5F;
             var lookAtTargetRewardR = Vector3.Dot(cubeForward, footR.up);
-            var lookAtTargetRewardLR = 0.5f * (lookAtTargetRewardL + lookAtTargetRewardR);
+            var lookAtTargetRewardL = Vector3.Dot(cubeForward, footL.up);
+            if (lookAtTargetRewardR > 0.5f) lookAtTargetRewardR = 0.5f;
+            if (lookAtTargetRewardL > 0.5f) lookAtTargetRewardL = 0.5f;
+            var lookAtTargetReward = lookAtTargetRewardR + lookAtTargetRewardL;
 
             //Check for NaNs
             if (float.IsNaN(lookAtTargetReward))
@@ -314,11 +311,8 @@ namespace JKress.AITrainer
                 );
             }
 
-            if (m_lookAtTarget) {
-                AddReward(0.5f*(matchSpeedReward + lookAtTargetRewardLR));
-            } else {
-                AddReward(matchSpeedReward * lookAtTargetReward);
-            }
+            AddReward(0.5f*(matchSpeedReward + lookAtTargetReward));
+			//AddReward(matchSpeedReward * lookAtTargetReward);
         }
 
         //Returns the average velocity of all of the body parts
