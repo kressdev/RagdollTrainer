@@ -32,7 +32,7 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 ### TensorBoard Results
 
-![TensorBoard Image](/docs/RagdollTensor.png)
+![TensorBoard Image](/docs/tensorboard.png)
 
 Results shown are for 25 agents training the same behavior (C# MaxStep is 5000). 
 The config file is the same as Walker.yaml example. Speed range is randomized (0.01-4.0).
