@@ -370,7 +370,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   basePrefab: {fileID: 199827425867132340, guid: d7a15fedfac49704a9e85abdacc07931, type: 3}
-  xCount: 1
-  zCount: 1
-  offsetX: 20
-  offsetZ: 20
+  xCount: 5
+  zCount: 5
+  offsetX: 10
+  offsetZ: 10

@@ -63,10 +63,10 @@ namespace JKress.AITrainer
         public Transform footR;
         public Transform armL;
         public Transform forearmL;
-        //public Transform handL;
+        public Transform handL;
         public Transform armR;
         public Transform forearmR;
-        //public Transform handR;
+        public Transform handR;
 
         //This will be used as a stabilized model space reference point for observations
         //Because ragdolls can move erratically during training, using a stabilized reference transform improves learning
