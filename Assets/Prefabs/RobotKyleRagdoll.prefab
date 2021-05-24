@@ -205,7 +205,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.12, y: 0.24, z: 0.06}
+  m_Size: {x: 0.1, y: 0.24, z: 0.06}
   m_Center: {x: 0, y: 0.07, z: 0.04}
 --- !u!54 &199827425979146255
 Rigidbody:
@@ -362,9 +362,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5207ef56f842b1f469f3b8fe8564f6a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxJointSpring: 80000
-  jointDampen: 5000
-  maxJointForceLimit: 40000
+  maxJointSpring: 140000
+  jointDampen: 3000
+  maxJointForceLimit: 20000
   bodyPartsList: []
 --- !u!114 &199827425625845318
 MonoBehaviour:
@@ -395,11 +395,14 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 4000
-  m_TargetWalkingSpeed: 4
-  m_minWalkingSpeed: 0.1
+  MaxStep: 5000
+  m_TargetWalkingSpeed: 2
+  m_minWalkingSpeed: 0.01
   m_maxWalkingSpeed: 4
   randomizeWalkSpeedEachEpisode: 1
+  firstSteps: 0
+  hipsStabilizer: {fileID: 849157879}
+  spineStabilizer: {fileID: 8928775271962309036}
   target: {fileID: 8372595353323816475}
   hips: {fileID: 6339991744262825781}
   spine: {fileID: 3529129436769802309}
@@ -436,7 +439,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 0cb937b40fbdaf644856004c2ee4ca0e, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: 59569ee20afdc3b439d079966efcc9e0, type: 3}
   m_InferenceDevice: 2
   m_BehaviorType: 0
   m_BehaviorName: Walker
@@ -596,8 +599,8 @@ Rigidbody:
   m_GameObject: {fileID: 2944506103670354067}
   serializedVersion: 2
   m_Mass: 2
-  m_Drag: 0.05
-  m_AngularDrag: 0.1
+  m_Drag: 2
+  m_AngularDrag: 4
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -882,8 +885,8 @@ Rigidbody:
   m_GameObject: {fileID: 3895136066064374997}
   serializedVersion: 2
   m_Mass: 16
-  m_Drag: 0.05
-  m_AngularDrag: 0.1
+  m_Drag: 1
+  m_AngularDrag: 2
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -1028,7 +1031,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 138d1d9468554214d9bb4538ec47b41b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uprightTorque: 10000
+  uprightTorque: 4000
   uprightTorqueFunction:
     serializedVersion: 2
     m_Curve:
@@ -1777,8 +1780,8 @@ Rigidbody:
   m_GameObject: {fileID: 6801450419102635523}
   serializedVersion: 2
   m_Mass: 14
-  m_Drag: 0.05
-  m_AngularDrag: 0.1
+  m_Drag: 1
+  m_AngularDrag: 2
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -1797,7 +1800,7 @@ CapsuleCollider:
   m_Radius: 0.08
   m_Height: 0.34
   m_Direction: 0
-  m_Center: {x: 0, y: 0, z: 0.02}
+  m_Center: {x: 0, y: 0, z: 0.03}
 --- !u!114 &849157879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1810,7 +1813,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 138d1d9468554214d9bb4538ec47b41b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uprightTorque: 10000
+  uprightTorque: 4000
   uprightTorqueFunction:
     serializedVersion: 2
     m_Curve:
@@ -1894,7 +1897,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.12, y: 0.24, z: 0.06}
+  m_Size: {x: 0.1, y: 0.24, z: 0.06}
   m_Center: {x: 0, y: 0.07, z: 0.04}
 --- !u!1 &8372595353065272287
 GameObject:
@@ -2004,8 +2007,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8372595353093096072}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 5, y: 0.5, z: 0}
-  m_LocalScale: {x: 10, y: 1, z: 1}
+  m_LocalPosition: {x: 10, y: 0.5, z: 0}
+  m_LocalScale: {x: 20, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8372595353360862348}
   m_RootOrder: 2
@@ -2228,7 +2231,7 @@ Transform:
   m_GameObject: {fileID: 8372595353360862351}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.8, z: 0.5}
   m_Children:
   - {fileID: 8372595353670999553}
   - {fileID: 8372595354742137214}
@@ -2264,8 +2267,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8372595353670999552}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 5}
-  m_LocalScale: {x: 11, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 10}
+  m_LocalScale: {x: 21, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8372595353360862348}
   m_RootOrder: 0
@@ -2359,8 +2362,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8372595353810749878}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -5, y: 0.5, z: 0}
-  m_LocalScale: {x: 10, y: 1, z: 1}
+  m_LocalPosition: {x: -10, y: 0.5, z: 0}
+  m_LocalScale: {x: 20, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8372595353360862348}
   m_RootOrder: 3
@@ -2453,9 +2456,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8372595354194233950}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.5, z: 0}
-  m_LocalScale: {x: 10, y: 1, z: 10}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.1, z: 0}
+  m_LocalScale: {x: 10, y: 0.2, z: 10}
   m_Children: []
   m_Father: {fileID: 199827425867132331}
   m_RootOrder: 2
@@ -2644,8 +2647,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8372595354742137201}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: -5}
-  m_LocalScale: {x: 11, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: -10}
+  m_LocalScale: {x: 21, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8372595353360862348}
   m_RootOrder: 1

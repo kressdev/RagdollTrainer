@@ -9,8 +9,8 @@ namespace JKress.AITrainer
         [SerializeField] int xCount = 1;
         [SerializeField] int zCount = 1;
 
-        [SerializeField] float offsetX = 10f;
-        [SerializeField] float offsetZ = 10f;
+        [SerializeField] float offsetX = 20f;
+        [SerializeField] float offsetZ = 20f;
 
         GameObject scenePrefab;
 

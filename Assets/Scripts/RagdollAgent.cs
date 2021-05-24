@@ -18,11 +18,11 @@ namespace JKress.AITrainer
         /// </summary>
         ///
         [Header("Walk Speed")]
-        [Range(0.1f, 4)]
+        [Range(0.01f, 4)]
         [SerializeField]
         //The walking speed to try and achieve
-        private float m_TargetWalkingSpeed = 4;
-        [SerializeField] float m_minWalkingSpeed = 0.1f; //The min walking speed
+        private float m_TargetWalkingSpeed = 2;
+        [SerializeField] float m_minWalkingSpeed = 0.01f; //The min walking speed
         [SerializeField] float m_maxWalkingSpeed = 4; //The max walking speed
 
         public float MTargetWalkingSpeed // property
@@ -35,6 +35,14 @@ namespace JKress.AITrainer
         //If true, walkSpeed will be randomly set between zero and m_maxWalkingSpeed in OnEpisodeBegin()
         //If false, the goal velocity will be walkingSpeed
         public bool randomizeWalkSpeedEachEpisode;
+
+        [Space(10)]
+        //If true, agent learns to stand up and take first steps toward target
+        public bool firstSteps = false;
+
+        //Stabilizer applies higher torque if first steps true
+        [SerializeField] Stabilizer hipsStabilizer;
+        [SerializeField] Stabilizer spineStabilizer;
 
         //The direction an agent will walk during training.
         private Vector3 m_WorldDirToWalk = Vector3.right;
@@ -99,6 +107,16 @@ namespace JKress.AITrainer
             m_ResetParams = Academy.Instance.EnvironmentParameters;
 
             SetResetParameters();
+
+            if (firstSteps)
+            {
+                hipsStabilizer.uprightTorque = 10000f;
+                spineStabilizer.uprightTorque = 10000f;
+            } else
+            {
+                hipsStabilizer.uprightTorque = 4000f;
+                spineStabilizer.uprightTorque = 4000f;
+            }
         }
 
         /// <summary>
@@ -274,45 +292,24 @@ namespace JKress.AITrainer
 
             var cubeForward = m_OrientationCube.transform.forward;
 
-            // Set reward for this step according to mixture of the following elements.
-            // a. Match target speed
-            //This reward will approach 1 if it matches perfectly and approach zero as it deviates
-            //var matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
-            var bpVel = m_JdController.bodyPartsDict[hips].rb.velocity;
-            var matchSpeedReward = Vector3.Dot(cubeForward, bpVel);
-            
-            //Check for NaNs
-            if (float.IsNaN(matchSpeedReward))
-            {
-                throw new ArgumentException(
-                    "NaN in moveTowardsTargetReward.\n" +
-                    $" cubeForward: {cubeForward}\n" +
-                    $" hips.velocity: {m_JdController.bodyPartsDict[hips].rb.velocity}\n" +
-                    $" maximumWalkingSpeed: {m_maxWalkingSpeed}"
-                );
-            }
-
             // b. Rotation alignment with target direction.
-            //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates
-            //var lookAtTargetReward = (Vector3.Dot(cubeForward, head.forward) + 1) * .5F;
-            var lookAtTargetRewardR = Vector3.Dot(cubeForward, footR.up);
-            var lookAtTargetRewardL = Vector3.Dot(cubeForward, footL.up);
-            if (lookAtTargetRewardR > 0.5f) lookAtTargetRewardR = 0.5f;
-            if (lookAtTargetRewardL > 0.5f) lookAtTargetRewardL = 0.5f;
-            var lookAtTargetReward = lookAtTargetRewardR + lookAtTargetRewardL;
+            //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates 
+            var lookAtTargetReward = 0.2f * (Vector3.Dot(cubeForward, head.forward) + 1) * .5F;
 
-            //Check for NaNs
-            if (float.IsNaN(lookAtTargetReward))
+            if (firstSteps) {
+                //Penalty if feet cross over 
+                var footSpacingReward = Vector3.Dot(footR.position - footL.position, footL.right);
+                if (footSpacingReward > 0.1f) footSpacingReward = 0.1f;
+
+                var matchSpeedReward = Vector3.Dot(GetAvgVelocity(), cubeForward);
+                if (matchSpeedReward > 0) matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
+
+                AddReward(0.5f * matchSpeedReward + lookAtTargetReward + footSpacingReward);
+            } else
             {
-                throw new ArgumentException(
-                    "NaN in lookAtTargetReward.\n" +
-                    $" cubeForward: {cubeForward}\n" +
-                    $" head.forward: {head.forward}"
-                );
+                var matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
+                AddReward(0.5f * matchSpeedReward + lookAtTargetReward);
             }
-
-            AddReward(0.5f*(matchSpeedReward + lookAtTargetReward));
-			//AddReward(matchSpeedReward * lookAtTargetReward);
         }
 
         //Returns the average velocity of all of the body parts
@@ -339,6 +336,9 @@ namespace JKress.AITrainer
         {
             //distance between our actual velocity and goal velocity
             var velDeltaMagnitude = Mathf.Clamp(Vector3.Distance(actualVelocity, velocityGoal), 0, MTargetWalkingSpeed);
+
+            //fix nan error
+            if (MTargetWalkingSpeed == 0) MTargetWalkingSpeed = 0.01f;
 
             //return the value on a declining sigmoid shaped curve that decays from 1 to 0
             //This reward will approach 1 if it matches perfectly and approach zero as it deviates

@@ -22,30 +22,30 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 * Added stabilizer to the ragdoll. The stabilizer applies torque to rotate the ragdoll upright.
 
-* Allow ragdoll to fall to the floor without reset. The agent learns to stand up after falling.
+* Added "firstSteps" option to adjust rewards and stabilizer for early training.
+
+* Allow ragdoll to fall without reset. The agent learns to stand up and balance after falling.
 
 * Match speed reward modified to include negative value (i.e. moving away from target).
 
-* Added LookAtTarget average for left and right foot transforms.
-
-* Apply cutoff to LookAtTarget reward (dot product 0.5f or greater is set to 0.5f max)
-
-* Speed and LookAtTarget reward added (instead of multiplied).
+* Added reward for foot spacing to prevent feet from crossing over (if firstSteps true).
 
 ### TensorBoard Results
 
 ![TensorBoard Image](/docs/RagdollTensor.png)
 
-Results shown are for 25 agents training the same behavior (C# MaxStep is 4000). 
-The config file is the same as Walker.yaml example. Speed range is randomized (0.1-4.0).
+Results shown are for 25 agents training the same behavior (C# MaxStep is 5000). 
+The config file is the same as Walker.yaml example. Speed range is randomized (0.01-4.0).
 
-Graph marker (1) agent learns to stand up and balance. 
-Graph marker (2) agent learns walking and reaches the first target. 
-Graph marker (3) agent optimizes walking to targets.
+Set firstSteps true for 0-5e6 steps, then false for 5e6-3e7 steps (shown by arrow in reward plot).
 
-The match speed reward is computed for the hips and includes negative direction (penalty). 
-The look at target reward is computed for the feet. A cutoff is applied so max reward is +/- 30deg to target.
-Further testing is needed to compare this reward with the average body velocity from the Walker example.
+Setting firstSteps true applies a negative direction (penalty) for the matching speed reward. This prevents the agent
+from learning a stationary forward swinging motion. Setting firstSteps true also increases the stabilizer torque.
+
+Setting firstSteps true also rewards foot spacing to keep feet apart. This prevents feet from crossing over and 
+tripping up the ragdoll as it learns to walk forward.
+
+Joint drive spring strength and max force are doubled from the example. This provides stiffer more responsive joints.
 
 ## Behavior Controller
 

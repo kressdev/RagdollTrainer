@@ -4,7 +4,8 @@ namespace JKress.AITrainer
 {
     public class Stabilizer : MonoBehaviour
     {
-        [SerializeField] float uprightTorque = 1000f;
+        public float uprightTorque = 1000f;
+
         public AnimationCurve uprightTorqueFunction;
 
         Rigidbody rb;
