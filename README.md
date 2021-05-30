@@ -22,7 +22,8 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 * Added stabilizer to the ragdoll. The stabilizer applies torque to rotate the ragdoll upright.
 
-* Added "firstSteps" option to adjust rewards and stabilizer for early training.
+* Added "firstSteps" option to adjust rewards and stabilizer for early training 
+  (set true if starting from untrained model, then toggle off later in training)
 
 * Allow ragdoll to fall without reset. The agent learns to stand up and balance after falling.
 
@@ -45,8 +46,9 @@ from learning a stationary forward swinging motion. Setting firstSteps true also
 Setting firstSteps true also rewards foot spacing to keep feet apart. This prevents feet from crossing over and 
 tripping up the ragdoll as it learns to walk forward.
 
-Joint drive spring strength and max force are doubled from the example. This provides stiffer more responsive joints.
+Early training spring strength and damper are 140k and 3k respectively. This provides stiffer more responsive joints. 
+However these settings cause more jitter. Settings can be scaled back to 80k/5k later in training to reduce jitter.
 
-## Behavior Controller
+## Neural State Machine
 
-TODO: Agent changes behavior depending on observations (see [wall jump example](https://github.com/Unity-Technologies/ml-agents/blob/main/docs/Learning-Environment-Examples.md))
+TODO: Agent changes behavior state depending on observations.

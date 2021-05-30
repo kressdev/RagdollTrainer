@@ -12,15 +12,15 @@ behaviors:
       learning_rate_schedule: linear
     network_settings:
       normalize: true
-      hidden_units: 512
+      hidden_units: 128
       num_layers: 3
       vis_encode_type: simple
     reward_signals:
       extrinsic:
         gamma: 0.995
         strength: 1.0
-    keep_checkpoints: 60
+    keep_checkpoints: 80
     checkpoint_interval: 500000
-    max_steps: 30000000
+    max_steps: 40000000
     time_horizon: 1000
     summary_freq: 30000
