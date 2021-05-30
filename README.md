@@ -14,9 +14,10 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 ### Changes to the Walker Example:
 
-* Default Robot Kyle rig replaced with a new rig created in blender (blend file is included in the assets folder).
+* Default Robot Kyle rig replaced with a new rig created in blender (.blend file is included in the assets folder.
+  You will need to download blender to use the prefab asset).
 
-* Ragdoll prefabs are instantiated by a spawner script attached to the camera.
+* Ragdoll prefab instantiated by a spawner script attached to the camera.
 
 * Added Heuristic function to drive the joints by user input (for testing only).
 
