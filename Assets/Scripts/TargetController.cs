@@ -12,45 +12,16 @@ namespace Unity.MLAgentsExamples
     /// </summary>
     public class TargetController : MonoBehaviour
     {
-        [Header("Collider Tag To Detect")]
-        public string tagToDetect = "agent"; //collider tag to detect 
-        
-        [Header("Target Placement")]
         public float spawnRadius; //The radius in which a target can be randomly spawned.
+
         public bool respawnIfTouched; //Should the target respawn to a different position when touched
 
-        [Header("Target Fell Protection")]
-        public bool respawnIfFallsOffPlatform = true; //If the target falls off the platform, reset the position.
-        public float fallDistance = 5; //distance below the starting height that will trigger a respawn 
-
-
-        private Vector3 m_startingPos; //the starting position of the target
-        private Agent m_agentTouching; //the agent currently touching the target
-
-        [System.Serializable]
-        public class TriggerEvent : UnityEvent<Collider>
-        {
-        }
-
-        [Header("Trigger Callbacks")]
-        public TriggerEvent onTriggerEnterEvent = new TriggerEvent();
-        public TriggerEvent onTriggerStayEvent = new TriggerEvent();
-        public TriggerEvent onTriggerExitEvent = new TriggerEvent();
-
-        [System.Serializable]
-        public class CollisionEvent : UnityEvent<Collision>
-        {
-        }
-
-        [Header("Collision Callbacks")]
-        public CollisionEvent onCollisionEnterEvent = new CollisionEvent();
-        public CollisionEvent onCollisionStayEvent = new CollisionEvent();
-        public CollisionEvent onCollisionExitEvent = new CollisionEvent();
+        const string k_Agent = "agent";
 
         // Start is called before the first frame update
         void Start() //OnEnable
         {
-            m_startingPos = transform.localPosition; //Use local position
+            //m_startingPos = transform.localPosition; //Use local position
             
             if (respawnIfTouched)
             {
@@ -58,15 +29,12 @@ namespace Unity.MLAgentsExamples
             }
         }
 
-        void Update()
+        void FixedUpdate()
         {
-            if (respawnIfFallsOffPlatform)
+            if (transform.localPosition.y < -5)
             {
-                if (transform.localPosition.y < m_startingPos.y - fallDistance)
-                {
-                    Debug.Log($"{transform.name} Fell Off Platform");
-                    MoveTargetToRandomPosition();
-                }
+                Debug.Log($"{transform.name} Fell Off Platform");
+                MoveTargetToRandomPosition();
             }
         }
 
@@ -75,61 +43,28 @@ namespace Unity.MLAgentsExamples
         /// </summary>
         public void MoveTargetToRandomPosition()
         {
-            var newTargetPos = m_startingPos + (Random.insideUnitSphere * spawnRadius);
-            newTargetPos.y = Random.Range(0.6f, m_startingPos.y);
-      
+            Collider[] hitColliders = Physics.OverlapSphere(transform.position, transform.localScale.x / 2);
+            Vector3 newTargetPos = Vector3.zero;
+
+            while (hitColliders.Length > 0)
+            {
+                newTargetPos = Random.insideUnitSphere * spawnRadius;
+                newTargetPos.y = Random.Range(0.6f, 1.4f);
+
+                hitColliders = Physics.OverlapSphere(newTargetPos, transform.localScale.x / 2);
+            }
+
             transform.localPosition = newTargetPos; //Use local position
         }
 
         private void OnCollisionEnter(Collision col)
         {
-            if (col.transform.CompareTag(tagToDetect))
+            if (col.transform.CompareTag(k_Agent))
             {
-                onCollisionEnterEvent.Invoke(col);
                 if (respawnIfTouched)
                 {
                     MoveTargetToRandomPosition();
                 }
-            }
-        }
-
-        private void OnCollisionStay(Collision col)
-        {
-            if (col.transform.CompareTag(tagToDetect))
-            {
-                onCollisionStayEvent.Invoke(col);
-            }
-        }
-
-        private void OnCollisionExit(Collision col)
-        {
-            if (col.transform.CompareTag(tagToDetect))
-            {
-                onCollisionExitEvent.Invoke(col);
-            }
-        }
-
-        private void OnTriggerEnter(Collider col)
-        {
-            if (col.CompareTag(tagToDetect))
-            {
-                onTriggerEnterEvent.Invoke(col);
-            }
-        }
-
-        private void OnTriggerStay(Collider col)
-        {
-            if (col.CompareTag(tagToDetect))
-            {
-                onTriggerStayEvent.Invoke(col);
-            }
-        }
-
-        private void OnTriggerExit(Collider col)
-        {
-            if (col.CompareTag(tagToDetect))
-            {
-                onTriggerExitEvent.Invoke(col);
             }
         }
     }

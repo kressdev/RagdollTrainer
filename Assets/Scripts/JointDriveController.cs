@@ -18,9 +18,7 @@ namespace Unity.MLAgentsExamples
 
         [Header("Ground & Target Contact")]
         [Space(10)]
-        public GroundContact groundContact;
-
-        public TargetContact targetContact;
+        public ObjectContact objectContact;
 
         [FormerlySerializedAs("thisJDController")]
         [HideInInspector] public JointDriveController thisJdController;
@@ -53,14 +51,11 @@ namespace Unity.MLAgentsExamples
             bp.rb.transform.rotation = bp.startingRot;
             bp.rb.velocity = Vector3.zero;
             bp.rb.angularVelocity = Vector3.zero;
-            if (bp.groundContact)
+            if (bp.objectContact)
             {
-                bp.groundContact.touchingGround = false;
-            }
-
-            if (bp.targetContact)
-            {
-                bp.targetContact.touchingTarget = false;
+                bp.objectContact.touchingGround = false;
+                bp.objectContact.touchingTarget = false;
+                bp.objectContact.touchingWall = false;
             }
         }
 
@@ -104,14 +99,29 @@ namespace Unity.MLAgentsExamples
     {
         [Header("Joint Drive Settings")]
         [Space(10)]
-        public float maxJointSpring;
+        [Range(80000, 140000)] public float maxJointSpring = 140000;
+        float m_minJointSpring = 80000;
+        float m_maxJointSpring = 140000;
 
-        public float jointDampen;
+        [Range(3000, 5000)] public float jointDampen = 3000;
+        float m_minJointDampen = 3000;
+        float m_maxJointDampen = 5000;
+
         public float maxJointForceLimit;
-        float m_FacingDot;
+
+        public float MJointSpring // property
+        {
+            get { return maxJointSpring; }
+            set { maxJointSpring = Mathf.Clamp(value, m_minJointSpring, m_maxJointSpring); }
+        }
+
+        public float MJointDampen
+        {
+            get { return jointDampen; }
+            set { jointDampen = Mathf.Clamp(value, m_minJointDampen, m_maxJointDampen); }
+        }
 
         [HideInInspector] public Dictionary<Transform, BodyPart> bodyPartsDict = new Dictionary<Transform, BodyPart>();
-
         [HideInInspector] public List<BodyPart> bodyPartsList = new List<BodyPart>();
         const float k_MaxAngularVelocity = 50.0f;
 
@@ -130,15 +140,16 @@ namespace Unity.MLAgentsExamples
             bp.rb.maxAngularVelocity = k_MaxAngularVelocity;
 
             // Add & setup the ground contact script
-            bp.groundContact = t.GetComponent<GroundContact>();
-            if (!bp.groundContact)
+            bp.objectContact = t.GetComponent<ObjectContact>();
+
+            if (!bp.objectContact)
             {
-                bp.groundContact = t.gameObject.AddComponent<GroundContact>();
-                bp.groundContact.agent = gameObject.GetComponent<Agent>();
+                bp.objectContact = t.gameObject.AddComponent<ObjectContact>();
+                bp.objectContact.agent = gameObject.GetComponent<Agent>();
             }
             else
             {
-                bp.groundContact.agent = gameObject.GetComponent<Agent>();
+                bp.objectContact.agent = gameObject.GetComponent<Agent>();
             }
 
             if (bp.joint)

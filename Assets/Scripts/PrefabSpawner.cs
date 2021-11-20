@@ -4,7 +4,7 @@ namespace JKress.AITrainer
 {
     public class PrefabSpawner : MonoBehaviour
     {
-        [SerializeField] GameObject basePrefab;
+        [SerializeField] GameObject[] basePrefab;
 
         [SerializeField] int xCount = 1;
         [SerializeField] int zCount = 1;
@@ -16,17 +16,21 @@ namespace JKress.AITrainer
 
         void Awake()
         {
-            //If prefab is in the scene, remove it
             scenePrefab = GameObject.FindWithTag("agentPrefab");
-            if (scenePrefab != null) Destroy(scenePrefab);
+            if (scenePrefab != null) Destroy(scenePrefab); //If prefab is in the scene, remove it
 
-            //Spawn prefabs along x and z from basePrefab 
-            for (int i = 0; i < xCount; i++)
+            float behaviorOffset = 0;
+
+            for (int k = 0; k < basePrefab.Length; k++)
             {
-                for (int j = 0; j < zCount; j++)
+                //Spawn prefabs along x and z from basePrefab 
+                for (int i = 0; i < xCount; i++)
                 {
-                    Instantiate(basePrefab, new Vector3(i * offsetX, 0, j * offsetZ),
-                        Quaternion.identity);
+                    for (int j = 0; j < zCount; j++)
+                    {
+                        Instantiate(basePrefab[k], new Vector3(i * offsetX + behaviorOffset, 0, j * offsetZ),
+                            Quaternion.identity);
+                    }
                 }
             }
         }

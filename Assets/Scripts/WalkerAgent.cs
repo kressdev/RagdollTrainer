@@ -9,21 +9,50 @@ using Random = UnityEngine.Random;
 
 namespace JKress.AITrainer
 {
-    public class RagdollAgent : Agent
+    public class WalkerAgent : Agent
     {
         /// <summary>
         /// Based on walker example.
         /// Changed body parts and joints for Robot Kyle rig.
-        /// Added Heuristic function to test joints by user input. 
+        /// Added Heuristic function to test joints by user input.
+        /// Added ray perception sensor 3d to help navigate around walls.
         /// </summary>
-        ///
-        [Header("Walk Speed")]
-        [Range(0.01f, 4)]
-        [SerializeField]
-        //The walking speed to try and achieve
-        private float m_TargetWalkingSpeed = 2;
-        [SerializeField] float m_minWalkingSpeed = 0.01f; //The min walking speed
-        [SerializeField] float m_maxWalkingSpeed = 4; //The max walking speed
+        /// 
+        [Header("Training Type")] //If true, agent is penalized for moving away from target
+        public bool earlyTraining = false;
+
+        [Header("Target Goal")]
+        [SerializeField] Transform targetT; //Target the agent will walk towards during training
+        [SerializeField] TargetController targetController;
+
+        [Header("Body Parts")]
+        [SerializeField] Transform hips;
+        [SerializeField] Transform spine;
+        [SerializeField] Transform head;
+        [SerializeField] Transform thighL;
+        [SerializeField] Transform shinL;
+        [SerializeField] Transform footL;
+        [SerializeField] Transform thighR;
+        [SerializeField] Transform shinR;
+        [SerializeField] Transform footR;
+        [SerializeField] Transform armL;
+        [SerializeField] Transform forearmL;
+        [SerializeField] Transform handL;
+        [SerializeField] Transform armR;
+        [SerializeField] Transform forearmR;
+        [SerializeField] Transform handR;
+
+        [Header("Stabilizer")]
+        [Range(1000, 4000)] [SerializeField] float m_stabilizerTorque = 4000f;
+        float m_minStabilizerTorque = 1000;
+        float m_maxStabilizerTorque = 4000; 
+        [SerializeField] Stabilizer hipsStabilizer;
+        [SerializeField] Stabilizer spineStabilizer;
+
+        [Header("Walk Speed")] //The walking speed to try and achieve
+        [Range(0.1f, 4)] [SerializeField] float m_TargetWalkingSpeed = 2; 
+        float m_minWalkingSpeed = 0.1f; 
+        float m_maxWalkingSpeed = 4; 
 
         public float MTargetWalkingSpeed // property
         {
@@ -31,64 +60,35 @@ namespace JKress.AITrainer
             set { m_TargetWalkingSpeed = Mathf.Clamp(value, m_minWalkingSpeed, m_maxWalkingSpeed); }
         }
 
+        public float MStabilizerTorque 
+        {
+            get { return m_stabilizerTorque; }
+            set { m_stabilizerTorque = Mathf.Clamp(value, m_minStabilizerTorque, m_maxStabilizerTorque); }
+        }
+
         //Should the agent sample a new goal velocity each episode?
         //If true, walkSpeed will be randomly set between zero and m_maxWalkingSpeed in OnEpisodeBegin()
         //If false, the goal velocity will be walkingSpeed
         public bool randomizeWalkSpeedEachEpisode;
-
-        [Space(10)]
-        //If true, agent learns to stand up and take first steps toward target
-        public bool firstSteps = false;
-
-        //Stabilizer applies higher torque if first steps true
-        [SerializeField] Stabilizer hipsStabilizer;
-        [SerializeField] Stabilizer spineStabilizer;
-
-        //The direction an agent will walk during training.
-        private Vector3 m_WorldDirToWalk = Vector3.right;
-
-        [Header("Target To Walk Towards")]
-        public Transform target; //Target the agent will walk towards during training.
-
-        [Header("Body Parts")]
-        public Transform hips;
-        //public Transform chest;
-        public Transform spine;
-        public Transform head;
-        public Transform thighL;
-        public Transform shinL;
-        public Transform footL;
-        public Transform thighR;
-        public Transform shinR;
-        public Transform footR;
-        public Transform armL;
-        public Transform forearmL;
-        public Transform handL;
-        public Transform armR;
-        public Transform forearmR;
-        public Transform handR;
 
         //This will be used as a stabilized model space reference point for observations
         //Because ragdolls can move erratically during training, using a stabilized reference transform improves learning
         OrientationCubeController m_OrientationCube;
 
         //The indicator graphic gameobject that points towards the target
-        //DirectionIndicator m_DirectionIndicator;
         JointDriveController m_JdController;
-        EnvironmentParameters m_ResetParams;
+
 
         public override void Initialize()
         {
-            target.gameObject.GetComponent<MeshRenderer>().enabled = true; //If off turn target render on
+            targetT.GetComponent<MeshRenderer>().enabled = true; //If off turn target render on
 
             m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
-            //m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
 
             //Setup each body part
             m_JdController = GetComponent<JointDriveController>();
 
             m_JdController.SetupBodyPart(hips);
-            //m_JdController.SetupBodyPart(chest);
             m_JdController.SetupBodyPart(spine);
             m_JdController.SetupBodyPart(head);
             m_JdController.SetupBodyPart(thighL);
@@ -99,24 +99,11 @@ namespace JKress.AITrainer
             m_JdController.SetupBodyPart(footR);
             m_JdController.SetupBodyPart(armL);
             m_JdController.SetupBodyPart(forearmL);
-            //m_JdController.SetupBodyPart(handL);
             m_JdController.SetupBodyPart(armR);
             m_JdController.SetupBodyPart(forearmR);
-            //m_JdController.SetupBodyPart(handR);
 
-            m_ResetParams = Academy.Instance.EnvironmentParameters;
-
-            SetResetParameters();
-
-            if (firstSteps)
-            {
-                hipsStabilizer.uprightTorque = 10000f;
-                spineStabilizer.uprightTorque = 10000f;
-            } else
-            {
-                hipsStabilizer.uprightTorque = 4000f;
-                spineStabilizer.uprightTorque = 4000f;
-            }
+            hipsStabilizer.uprightTorque = m_stabilizerTorque;
+            spineStabilizer.uprightTorque = m_stabilizerTorque;
         }
 
         /// <summary>
@@ -124,6 +111,9 @@ namespace JKress.AITrainer
         /// </summary>
         public override void OnEpisodeBegin()
         {
+            //targetController.MoveTargetToRandomPosition(); //method also fixes overlaps
+            targetT.localPosition = new Vector3(0, 1.4f, 8);
+
             //Reset all of the body parts
             foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
             {
@@ -138,8 +128,29 @@ namespace JKress.AITrainer
             //Set our goal walking speed
             MTargetWalkingSpeed =
                 randomizeWalkSpeedEachEpisode ? Random.Range(m_minWalkingSpeed, m_maxWalkingSpeed) : MTargetWalkingSpeed;
+        }
 
-            SetResetParameters();
+        void FixedUpdate()
+        {
+            UpdateOrientationObjects();
+           
+            //Penalty if feet cross over
+            var footSpacingReward = Vector3.Dot(footR.position - footL.position, footL.right);
+            if (footSpacingReward > 0.1f) footSpacingReward = 0.1f;
+            AddReward(footSpacingReward);
+
+            var cubeForward = m_OrientationCube.transform.forward;
+            var lookAtTargetReward = Vector3.Dot(head.forward, cubeForward) + 1; 
+
+            var matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
+
+            if (earlyTraining)
+            { //*Important* Forces movement towards target (penalize stationary swinging)
+                matchSpeedReward = Vector3.Dot(GetAvgVelocity(), cubeForward); 
+                if (matchSpeedReward > 0) matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
+            }
+
+            AddReward(matchSpeedReward + 0.1f * lookAtTargetReward);
         }
 
         /// <summary>
@@ -147,8 +158,11 @@ namespace JKress.AITrainer
         /// </summary>
         public void CollectObservationBodyPart(BodyPart bp, VectorSensor sensor)
         {
-            //Ground Check
-            sensor.AddObservation(bp.groundContact.touchingGround); // Is this bp touching the ground
+            //VectorSensor warning disabled (Library\PackageCache\com.unity.ml-agents@2.0.0-pre.3\Runtime\Sensors)
+
+            //Interaction Objects Contact Check
+            sensor.AddObservation(bp.objectContact.touchingGround); // Is this bp touching the ground
+            sensor.AddObservation(bp.objectContact.touchingWall); // Is this bp touching the wall
 
             //Get velocities in the context of our orientation cube's space
             //Note: You can get these velocities in world space as well but it may not train as well.
@@ -162,10 +176,7 @@ namespace JKress.AITrainer
             sensor.AddObservation(bp.rb.transform.localRotation);
 
             //Skip body parts without a joint drive
-            if (bp.rb.transform != hips)// && bp.rb.transform != handL && bp.rb.transform != handR)
-            {
-                sensor.AddObservation(bp.currentStrength / m_JdController.maxJointForceLimit);
-            }
+            if (bp.rb.transform != hips) sensor.AddObservation(bp.currentStrength / m_JdController.maxJointForceLimit);
         }
 
         /// <summary>
@@ -192,8 +203,8 @@ namespace JKress.AITrainer
             sensor.AddObservation(Quaternion.FromToRotation(head.forward, cubeForward));
 
             //Position of target position relative to cube
-            sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(target.transform.position));
-
+            sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(targetT.position));
+            
             foreach (var bodyPart in m_JdController.bodyPartsList)
             {
                 CollectObservationBodyPart(bodyPart, sensor);
@@ -207,7 +218,6 @@ namespace JKress.AITrainer
             var continuousActions = actionBuffers.ContinuousActions;
             var i = -1;
 
-            //bpDict[chest].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
             bpDict[spine].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], continuousActions[++i]);
             bpDict[thighL].SetJointTargetRotation(continuousActions[++i], 0, continuousActions[++i]);
             bpDict[thighR].SetJointTargetRotation(continuousActions[++i], 0, continuousActions[++i]);
@@ -222,7 +232,6 @@ namespace JKress.AITrainer
             bpDict[head].SetJointTargetRotation(continuousActions[++i], continuousActions[++i], 0);
 
             //update joint strength settings
-            //bpDict[chest].SetJointStrength(continuousActions[++i]);
             bpDict[spine].SetJointStrength(continuousActions[++i]);
             bpDict[head].SetJointStrength(continuousActions[++i]);
             bpDict[thighL].SetJointStrength(continuousActions[++i]);
@@ -278,38 +287,7 @@ namespace JKress.AITrainer
         //Update OrientationCube and DirectionIndicator
         void UpdateOrientationObjects()
         {
-            m_WorldDirToWalk = target.position - hips.position;
-            m_OrientationCube.UpdateOrientation(hips, target);
-            //if (m_DirectionIndicator)
-            //{
-            //    m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
-            //}
-        }
-
-        void FixedUpdate()
-        {
-            UpdateOrientationObjects();
-
-            var cubeForward = m_OrientationCube.transform.forward;
-
-            // b. Rotation alignment with target direction.
-            //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates 
-            var lookAtTargetReward = 0.2f * (Vector3.Dot(cubeForward, head.forward) + 1) * .5F;
-
-            if (firstSteps) {
-                //Penalty if feet cross over 
-                var footSpacingReward = Vector3.Dot(footR.position - footL.position, footL.right);
-                if (footSpacingReward > 0.1f) footSpacingReward = 0.1f;
-
-                var matchSpeedReward = Vector3.Dot(GetAvgVelocity(), cubeForward);
-                if (matchSpeedReward > 0) matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
-
-                AddReward(0.5f * matchSpeedReward + lookAtTargetReward + footSpacingReward);
-            } else
-            {
-                var matchSpeedReward = GetMatchingVelocityReward(cubeForward * MTargetWalkingSpeed, GetAvgVelocity());
-                AddReward(0.5f * matchSpeedReward + lookAtTargetReward);
-            }
+            m_OrientationCube.UpdateOrientation(hips, targetT);
         }
 
         //Returns the average velocity of all of the body parts
@@ -319,7 +297,7 @@ namespace JKress.AITrainer
         {
             Vector3 velSum = Vector3.zero;
 
-            //ALL RBS
+            //All Rbs
             int numOfRb = 0;
             foreach (var item in m_JdController.bodyPartsList)
             {
@@ -329,6 +307,22 @@ namespace JKress.AITrainer
 
             var avgVel = velSum / numOfRb;
             return avgVel;
+        }
+
+        Vector3 GetAvgPosition()
+        {
+            Vector3 posSum = Vector3.zero;
+
+            //All Rbs
+            int numOfRb = 0;
+            foreach (var item in m_JdController.bodyPartsList)
+            {
+                numOfRb++;
+                posSum += item.rb.position;
+            }
+
+            var avgPos = posSum / numOfRb;
+            return avgPos;
         }
 
         //normalized value of the difference in avg speed vs goal walking speed.
@@ -343,26 +337,6 @@ namespace JKress.AITrainer
             //return the value on a declining sigmoid shaped curve that decays from 1 to 0
             //This reward will approach 1 if it matches perfectly and approach zero as it deviates
             return Mathf.Pow(1 - Mathf.Pow(velDeltaMagnitude / MTargetWalkingSpeed, 2), 2);
-        }
-
-        /// <summary>
-        /// Agent touched the target
-        /// </summary>
-        public void TouchedTarget()
-        {
-            //AddReward(1f);
-        }
-
-        public void SetTorsoMass()
-        {
-            //m_JdController.bodyPartsDict[chest].rb.mass = m_ResetParams.GetWithDefault("chest_mass", 8);
-            m_JdController.bodyPartsDict[spine].rb.mass = m_ResetParams.GetWithDefault("spine_mass", 8);
-            m_JdController.bodyPartsDict[hips].rb.mass = m_ResetParams.GetWithDefault("hip_mass", 8);
-        }
-
-        public void SetResetParameters()
-        {
-            //SetTorsoMass();
         }
     }
 }
