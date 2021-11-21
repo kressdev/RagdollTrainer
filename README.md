@@ -20,7 +20,7 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 * Added stabilizer to hips and spine. The stabilizer applies torque to help ragdoll balance.
 
-* Added "earlyTraining" bool to toggle reward type for early balance or walking.
+* Added "earlyTraining" bool to toggle reward type for balance or walking.
 
 * Added "WallsAgent" prefab for training with obstacles (using Ray Perception Sensor 3D).
 
