@@ -26,7 +26,7 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 ### Training:
 
-* Currently there are 3 stages: balance, walking, obstacles (walls).
+* Currently there are 3 training stages: balance -> walking -> obstacles (walls).
 * Set "earlyTraining" bool True/False for balance/walking stages.
 * Replace "WalkerAgent" prefab with "WallsAgent" for training with obstacles.
 
