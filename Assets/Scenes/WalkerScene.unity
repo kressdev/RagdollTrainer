@@ -248,7 +248,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   basePrefab:
-  - {fileID: 10151105898010065, guid: 486e377c8f5d1c745837b69b6276e1c2, type: 3}
+  - {fileID: 7370140648595448830, guid: 347526641e12b3e49b0e83d40a15c855, type: 3}
   xCount: 5
   zCount: 5
   offsetX: 20

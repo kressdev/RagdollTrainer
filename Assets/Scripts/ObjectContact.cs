@@ -13,8 +13,11 @@ namespace Unity.MLAgentsExamples
     {
         [HideInInspector] public Agent agent;
 
+        public float targetReward = 1;
+
         // Penalty amount (ex: -1)
-        public float groundContactPenalty; 
+        public float groundContactPenalty = -1;
+        public float wallContactPenalty = 0;
 
         //Contact with the gameObject for observation
         public bool touchingGround;
@@ -41,6 +44,7 @@ namespace Unity.MLAgentsExamples
             if (col.transform.CompareTag(k_Target))
             {
                 touchingTarget = true;
+                agent.AddReward(targetReward);
             }
         }
 
@@ -49,6 +53,11 @@ namespace Unity.MLAgentsExamples
             if (col.transform.CompareTag(k_Ground))
             {
                 agent.AddReward(groundContactPenalty);
+            }
+
+            if (col.transform.CompareTag(k_Wall))
+            {
+                agent.AddReward(wallContactPenalty);
             }
         }
 

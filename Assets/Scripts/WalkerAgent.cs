@@ -37,10 +37,8 @@ namespace JKress.AITrainer
         [SerializeField] Transform footR;
         [SerializeField] Transform armL;
         [SerializeField] Transform forearmL;
-        [SerializeField] Transform handL;
         [SerializeField] Transform armR;
         [SerializeField] Transform forearmR;
-        [SerializeField] Transform handR;
 
         [Header("Stabilizer")]
         [Range(1000, 4000)] [SerializeField] float m_stabilizerTorque = 4000f;
@@ -81,8 +79,6 @@ namespace JKress.AITrainer
 
         public override void Initialize()
         {
-            targetT.GetComponent<MeshRenderer>().enabled = true; //If off turn target render on
-
             m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
 
             //Setup each body part
@@ -111,8 +107,7 @@ namespace JKress.AITrainer
         /// </summary>
         public override void OnEpisodeBegin()
         {
-            //targetController.MoveTargetToRandomPosition(); //method also fixes overlaps
-            targetT.localPosition = new Vector3(0, 1.4f, 8);
+            targetController.MoveTargetToRandomPosition(); //method also fixes overlaps
 
             //Reset all of the body parts
             foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
@@ -158,8 +153,6 @@ namespace JKress.AITrainer
         /// </summary>
         public void CollectObservationBodyPart(BodyPart bp, VectorSensor sensor)
         {
-            //VectorSensor warning disabled (Library\PackageCache\com.unity.ml-agents@2.0.0-pre.3\Runtime\Sensors)
-
             //Interaction Objects Contact Check
             sensor.AddObservation(bp.objectContact.touchingGround); // Is this bp touching the ground
             sensor.AddObservation(bp.objectContact.touchingWall); // Is this bp touching the wall

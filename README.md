@@ -16,17 +16,21 @@ The Robot Kyle model from the Unity assets store is used for the ragdoll.
 
 * Default Robot Kyle rig replaced with a new rig created in blender. FBX and blend file included.
 
-* Heuristic function included to drive the joints by user input (for development testing only).
+* Heuristic function inlcuded to drive the joints by user input (for development testing only).
 
 * Added stabilizer to hips and spine. The stabilizer applies torque to help ragdoll balance.
 
-* Added "earlyTraining" bool to toggle reward type for balance or walking.
+* Added "earlyTraining" bool for initial balance/walking toward target.
 
-* Added "WallsAgent" prefab for training with obstacles (using Ray Perception Sensor 3D).
+* Added WallsAgent prefab for navigating around obstacles (using Ray Perception Sensor 3D).
 
-### Training:
+* Added StairsAgent prefab for navigating small and large steps.
 
-* Currently there are 3 training stages: Balance -> Walking -> Obstacles
-* Set "earlyTraining" bool True/False for Balance/Walking stages.
-* Replace "WalkerAgent" prefab with "WallsAgent" for training with obstacles.
+* Added curiosity to yaml to improve walls and stairs training.
+
+### Training Process (where bool in parenthesis refers to "earlyTraining" setting): 
+
+* Walking: WalkerAgent (true) -> WalkerAgent (false)
+* Walls: WalkerAgent (true) -> WalkerAgent (false) -> WallsAgent (false)
+* Stairs: WalkerAgent (true) -> StairsAgent (true) -> StairsAgent (false)
 

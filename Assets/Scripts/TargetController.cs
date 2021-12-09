@@ -12,22 +12,16 @@ namespace Unity.MLAgentsExamples
     /// </summary>
     public class TargetController : MonoBehaviour
     {
-        public float spawnRadius; //The radius in which a target can be randomly spawned.
+        [SerializeField] LayerMask layerMask;
+        [SerializeField] float rayDown = 10;
 
-        public bool respawnIfTouched; //Should the target respawn to a different position when touched
+        public Vector2 spawnX = new Vector2(-10, 10); //The region in which a target can be spawned.
+        public Vector2 spawnY = new Vector2(0.5f, 1.5f);
+        public Vector2 spawnZ = new Vector2(-10, 10);
+
+        public bool respawnIfTouched = true; //Should the target respawn to a different position when touched
 
         const string k_Agent = "agent";
-
-        // Start is called before the first frame update
-        void Start() //OnEnable
-        {
-            //m_startingPos = transform.localPosition; //Use local position
-            
-            if (respawnIfTouched)
-            {
-                MoveTargetToRandomPosition();
-            }
-        }
 
         void FixedUpdate()
         {
@@ -43,17 +37,22 @@ namespace Unity.MLAgentsExamples
         /// </summary>
         public void MoveTargetToRandomPosition()
         {
+            Vector3 newTargetPos = new Vector3(Random.Range(spawnX.x, spawnX.y), Random.Range(spawnY.x, spawnY.y), Random.Range(spawnZ.x, spawnZ.y));
+
             Collider[] hitColliders = Physics.OverlapSphere(transform.position, transform.localScale.x / 2);
-            Vector3 newTargetPos = Vector3.zero;
 
             while (hitColliders.Length > 0)
             {
-                newTargetPos = Random.insideUnitSphere * spawnRadius;
-                newTargetPos.y = Random.Range(0.6f, 1.4f);
+                newTargetPos = new Vector3(Random.Range(spawnX.x, spawnX.y), rayDown, Random.Range(spawnZ.x, spawnZ.y));
+
+                RaycastHit hit;
+                if (Physics.Raycast(newTargetPos, Vector3.down, out hit, Mathf.Infinity, layerMask))
+                {
+                    newTargetPos.y = hit.point.y + Random.Range(spawnY.x, spawnY.y);
+                }
 
                 hitColliders = Physics.OverlapSphere(newTargetPos, transform.localScale.x / 2);
             }
-
             transform.localPosition = newTargetPos; //Use local position
         }
 
