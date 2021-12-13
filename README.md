@@ -1,4 +1,4 @@
-![Ragdoll Screenshot](/docs/RagdollScreenshot.png)
+![Ragdoll Screenshot](/docs/CombinedAgent.png)
 
 # Ragdoll Trainer Unity Project
 
