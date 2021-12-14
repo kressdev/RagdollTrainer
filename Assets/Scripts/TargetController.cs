@@ -37,11 +37,10 @@ namespace Unity.MLAgentsExamples
         /// </summary>
         public void MoveTargetToRandomPosition()
         {
-            Vector3 newTargetPos = new Vector3(Random.Range(spawnX.x, spawnX.y), Random.Range(spawnY.x, spawnY.y), Random.Range(spawnZ.x, spawnZ.y));
+            Vector3 newTargetPos;
+            Collider[] hitColliders;
 
-            Collider[] hitColliders = Physics.OverlapSphere(transform.position, transform.localScale.x / 2);
-
-            while (hitColliders.Length > 0)
+            do 
             {
                 newTargetPos = new Vector3(Random.Range(spawnX.x, spawnX.y), rayDown, Random.Range(spawnZ.x, spawnZ.y));
 
@@ -52,7 +51,9 @@ namespace Unity.MLAgentsExamples
                 }
 
                 hitColliders = Physics.OverlapSphere(newTargetPos, transform.localScale.x / 2);
-            }
+
+            } while (hitColliders.Length > 0);
+
             transform.localPosition = newTargetPos; //Use local position
         }
 
